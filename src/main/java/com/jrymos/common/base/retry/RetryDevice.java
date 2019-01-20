@@ -1,6 +1,7 @@
 package com.jrymos.common.base.retry;
 
 import com.alibaba.fastjson.JSON;
+import com.jrymos.common.DynamicSourceLoad;
 import com.jrymos.common.annotation.Retry;
 import com.jrymos.common.exception.CommonException;
 import com.jrymos.common.storage.BaseStorage;
@@ -17,6 +18,8 @@ import org.springframework.stereotype.Component;
 import javax.annotation.Resource;
 import java.lang.reflect.Method;
 import java.util.Map;
+
+import static com.jrymos.common.DynamicSourceLoad.newInstance;
 
 /**
  * Created with IntelliJ IDEA
@@ -90,15 +93,35 @@ public class RetryDevice implements InitializingBean {
                 addRetryMethod(bean, method, retry);
             }
         }
+        // 无用资源gc
+        DynamicSourceLoad.retryMethodTemplate = null;
     }
 
     private void addRetryMethod(Object bean, Method method, Retry retry) {
         // 生成key
         String key = newKey(bean.getClass().getName(), method.getName(), retry.id());
-        // 生成RetryMethod 生成动态代理类 TODO
-        RetryMethod retryMethod = null;
+        // 生成RetryMethod 生成动态代理类
+        RetryMethod retryMethod = newRetryMethod(bean.getClass(), method.getName(), retry.id(), method.getParameterTypes());
         retryMethodMap.put(key, retryMethod);
         retryMap.put(key, retry);
+    }
+
+    private RetryMethod newRetryMethod(Object o, String methodName, String id, Class<?>[] parameterTypes) {
+        // 构建RetryMethod类源码
+        StringBuilder parameters = new StringBuilder(", ");
+        int index = 0;
+        for (Class parameterType : parameterTypes) {
+            parameters.append("(").append(parameterType.getName()).append(") args[").append(index++).append("]");
+        }
+        parameters.replace(0, 1, "");
+        String javaSource = DynamicSourceLoad.retryMethodTemplate.replaceAll("\\$IMPORT\\$", o.getClass().getName())
+                .replaceAll("\\$CLASS\\$", o.getClass().getSimpleName())
+                .replaceAll("\\$METHOD\\$", methodName)
+                .replaceAll("\\$ID\\$", id)
+                .replaceAll("\\$PARAMETERS\\$", parameters.toString());
+        LOGGER.info("newRetryMethod#{}#{}#{}:\n{}", o, methodName, id, javaSource);
+        // 加载、创建动态代理实例
+        return newInstance(javaSource, new Class[]{o.getClass()}, o);
     }
 
     private RetryInfo newRetryBean(ProceedingJoinPoint joinPoint, Retry retry) {
@@ -113,7 +136,6 @@ public class RetryDevice implements InitializingBean {
     private static String newKey(String className, String methodName, String id) {
         return className + "_" + methodName + "_" + id;
     }
-
 
     private Object handThrowable(Throwable e, Retry retry, RetryInfo retryInfo) throws Throwable {
         for (Class tClass : retry.retryFor()) {

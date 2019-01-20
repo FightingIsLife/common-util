@@ -1,7 +1,8 @@
-package com.jsrmos.sasuke.dynamic.mapper;
+//$Entity$$method$SqlBuilder
+package com.jrymos.common.dynamic.source;
 
-import com.jsrmos.sasuke.bean.entity.$Entity$;
-import com.jsrmos.sasuke.dao.provider.SqlBuilder;
+import $IMPORT_ENTITY$;
+import com.jsrmos.common.mybatis.SqlBuilder;
 
 import static com.jrymos.common.util.CommonUtils.isEmpty;
 

@@ -87,6 +87,7 @@ public class SqlProviderContainer implements InitializingBean {
                             .collect(toMap(trans(Field::getName, StringTransUtils::humpToUnderline), identity()));
                     entityPageSqlMap.put(proxyMapper.getClass(), SqlBuilderFactory.selectByEntityPage(entityClass, tableName, columnFieldMap));
                 });
+        SqlBuilderFactory.destroy();
     }
 
     private static <MAPPER> Map<MAPPER, Class> toMapperEntityClassMap(List<MAPPER> mapperList) {
