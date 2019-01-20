@@ -100,7 +100,7 @@ public class RetryDevice implements InitializingBean {
     private void addRetryMethod(Object bean, Method method, Retry retry) {
         // 生成key
         String key = newKey(bean.getClass().getName(), method.getName(), retry.id());
-        // 生成RetryMethod 生成动态代理类
+        // 生成RetryMethod 动态代理类
         RetryMethod retryMethod = newRetryMethod(bean.getClass(), method.getName(), retry.id(), method.getParameterTypes());
         retryMethodMap.put(key, retryMethod);
         retryMap.put(key, retry);
