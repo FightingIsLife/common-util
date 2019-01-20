@@ -1,0 +1,22 @@
+#数据库连接
+spring:
+  datasource:
+  #本地
+      url: jdbc:mysql://localhost:3306/jrymos
+      username: root
+      password: flylovezy.1314
+      driver-class-name: com.mysql.jdbc.Driver
+      sql-script-encoding: UTF-8
+      platform: mysql
+      type: com.alibaba.druid.pool.DruidDataSource
+mybatis:
+  mapperLocations: classpath:mybatis/*.xml
+  configuration:
+      map-underscore-to-camel-case: true
+      log-impl: org.apache.ibatis.logging.slf4j.Slf4jImpl
+  type-handlers-package: com.jrymos.sasuke.dao.handler
+  type-aliases-package: com.jrymos.sasuke.bean.bo
+server:
+  tomcat:
+    uri-encoding: UTF-8
+  port: 80
